@@ -7,7 +7,7 @@ import { UsersManager } from './UsersManager';
 export const App = () => (
   <div>
     <Header />
-    
+
     <h1>Welcome to Meteor!</h1>
     <Hello />
     <Info />
