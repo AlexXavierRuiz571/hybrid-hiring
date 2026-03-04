@@ -1,15 +1,17 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { Header } from './Header';
 import './Layout.css';
 
 export const Layout = () => {
   return (
     <div>
-      <nav>
+      <Header />
+      <nav className="desktop-nav">
         <NavLink to="/">Home</NavLink>
         <NavLink to="/users/list">Users List</NavLink>
         <NavLink to="/users/manage">Users Manager</NavLink>
       </nav>
-      <main>
+      <main className="main-content">
         <Outlet />
       </main>
     </div>
