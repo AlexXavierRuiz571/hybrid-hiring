@@ -123,7 +123,8 @@ Meteor's development server provides:
 ```
 hybrid-hiring/
 ├── client/
-│   └── main.tsx                    # Client entry point — mounts the React app
+│   ├── main.tsx                    # Client entry point — mounts the React app
+│   └── main.css                    # Global styles and CSS custom properties (:root variables)
 ├── server/
 │   └── main.ts                     # Server entry point — startup logic & data seeding
 ├── imports/
@@ -137,10 +138,16 @@ hybrid-hiring/
 │   └── ui/
 │       ├── App.tsx                 # Root React component
 │       ├── router.tsx              # Client-side routes (react-router-dom)
-│       ├── layouts/
-│       │   ├── Layout.tsx          # Shell layout wrapping all pages
-│       │   ├── Header.tsx          # Top navigation bar
-│       │   └── MobileNavOverlay.tsx
+│       ├── layouts/                # Structural shell components (header, nav, page wrapper)
+│       │   ├── Layout.tsx          # Shell layout — renders Header + <Outlet />
+│       │   ├── Layout.css
+│       │   ├── Header.tsx          # Top bar with logo, desktop nav, and hamburger button
+│       │   ├── Header.css
+│       │   ├── MobileNavOverlay.tsx # Slide-in drawer with nav links and auth actions
+│       │   └── MobileNavOverlay.css
+│       ├── hooks/                  # Custom React hooks
+│       │   └── useAuth.ts          # Reactive auth state (isLoggedIn, isAdmin, userId, logOut)
+│       ├── components/             # Shared, reusable UI components (Button, Card, TextField…)
 │       ├── pages/
 │       │   └── Home.tsx            # Landing page
 │       └── examples/
@@ -161,14 +168,36 @@ hybrid-hiring/
 
 ### Key conventions
 
-| Directory      | What belongs here                                                        |
-| -------------- | ------------------------------------------------------------------------ |
-| `imports/api/` | Everything that touches the database: collections, methods, publications |
-| `imports/ui/`  | React components — no direct database writes, use methods instead        |
-| `client/`      | The single client entry point only — minimal code                        |
-| `server/`      | The single server entry point only — startup & seeding                   |
+| Directory                | What belongs here                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `imports/api/`           | Everything that touches the database: collections, methods, publications                                      |
+| `imports/ui/layouts/`    | Structural shell components — header, nav, page wrapper. Not pages, not reusable widgets                      |
+| `imports/ui/hooks/`      | Custom React hooks. Hooks that wrap Meteor APIs (e.g. `useAuth`) live here so components stay Meteor-agnostic |
+| `imports/ui/components/` | Shared, reusable UI widgets — buttons, cards, form inputs, etc.                                               |
+| `imports/ui/pages/`      | One component per route. Composes layouts and components, calls hooks                                         |
+| `client/`                | The single client entry point only — minimal code                                                             |
+| `server/`                | The single server entry point only — startup & seeding                                                        |
 
 Meteor only auto-loads files in `client/` and `server/`. Everything under `imports/` must be explicitly imported before it is loaded — this is intentional and keeps the dependency graph clear.
+
+### Custom hooks
+
+Hooks in `imports/ui/hooks/` follow a simple rule: **one concern per hook**. A hook wraps a data source or a side-effect so the calling component never has to import Meteor packages directly.
+
+**`useAuth`** — returns reactive auth state derived from `Meteor.userId()` and `Meteor.user()`:
+
+```ts
+import { useAuth } from '../hooks/useAuth';
+
+const { isLoggedIn, isAdmin, userId, logOut } = useAuth();
+```
+
+| Return value | Type             | Description                                                       |
+| ------------ | ---------------- | ----------------------------------------------------------------- |
+| `isLoggedIn` | `boolean`        | `true` when a user session is active                              |
+| `isAdmin`    | `boolean`        | `true` when the current user has `isAdmin: true` on their profile |
+| `userId`     | `string \| null` | The current user's `_id`, or `null` if logged out                 |
+| `logOut`     | `() => void`     | Calls `Meteor.logout()`                                           |
 
 ---
 
