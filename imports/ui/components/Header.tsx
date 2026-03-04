@@ -1,41 +1,46 @@
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { MobileNavOverlay } from "./MobileNavOverlay";
+
 export const Header = () => {
   return (
-    <header className="header">
+    <header className="site-header">
       {/* Logo */}
-      <a href="/" className="header__logo">
+      <NavLink to="/" className="site-header__logo">
         Hybrid Hiring
-      </a>
+      </NavLink>
 
       {/* NavLink 
         will switch to NavLink after routing is implemented 
       */}
-      <nav className="header__nav">
-        <a href="/" className="header__link">
+      <nav className="site-header__nav">
+        <NavLink to="/" className="site-header__link">
           Home
-        </a>
-        <a href="/about" className="header__link">
+        </NavLink>
+        <NavLink to="/about" className="site-header__link">
           About
-        </a>
-        <a href="/contact" className="header__link">
+        </NavLink>
+        <NavLink to="/contact" className="site-header__link">
           Contact
-        </a>
-        <a href="/jobs" className="header__link">
+        </NavLink>
+        <NavLink to="/jobs" className="site-header__link">
           Jobs
-        </a>
+        </NavLink>
       </nav>
 
       {/* Auth */}
-      <div className="header__auth">
-        <a href="/login" className="header__link">
+      <div className="site-header__auth">
+        <NavLink to="/login" className="site-header__link">
           Log In
-        </a>
-        <a href="/signup" className="header__link">
+        </NavLink>
+        <NavLink to="/signup" className="site-header__link">
           Sign Up
-        </a>
+        </NavLink>
       </div>
 
       {/* Hamburger Button */}
-      <button className="header__menu">=</button>
+      <button className="site-header__hamburger">=</button>
     </header>
   );
 };
