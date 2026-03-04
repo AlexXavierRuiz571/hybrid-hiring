@@ -29,13 +29,8 @@ export const Header = () => {
   return (
     <header className="site-header">
       <NavLink to="/" className="site-header__logo">
-        Hybrid Hiring
+        Hybrid Hiring Solutions
       </NavLink>
-
-      <nav className="site-header__nav">
-        <NavLink to="/users/list">Users List</NavLink>
-        <NavLink to="/users/manage">Users Manager</NavLink>
-      </nav>
 
       <button
         className="site-header__hamburger"

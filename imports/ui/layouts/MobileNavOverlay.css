@@ -62,7 +62,9 @@
   font-size: 1.1rem;
   padding: 10px 8px;
   border-radius: 6px;
-  transition: background 150ms ease, color 150ms ease;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
 }
 
 .mobile-nav-links a:hover {
@@ -98,7 +100,9 @@
   padding: 10px 8px;
   border-radius: 6px;
   cursor: pointer;
-  transition: background 150ms ease, color 150ms ease;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
 }
 
 .mobile-nav-auth a {
