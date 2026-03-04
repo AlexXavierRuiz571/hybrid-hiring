@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useSubscribe, useFind } from 'meteor/react-meteor-data';
-import { UsersCollection } from '../api/users/collection';
+import { UsersCollection } from '../../api/users/collection';
 
 /**
  * HOW METEOR METHODS ARE CALLED FROM THE CLIENT
