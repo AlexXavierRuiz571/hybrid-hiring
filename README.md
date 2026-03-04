@@ -68,7 +68,7 @@ meteor --version
 
 Meteor bundles a local MongoDB instance that starts automatically when you run `meteor run`. You do **not** need to install MongoDB separately for local development.
 
-If you ever want to connect to an external database (e.g. MongoDB Atlas for staging), set `MONGO_URL` in `.env` — more on that in [Running the App](#3-running-the-app).
+If you ever want to connect to an external database (e.g. MongoDB Atlas for staging), update `MONGO_URL` in `.env`.
 
 ---
 
@@ -83,10 +83,10 @@ cd hybrid-hiring
 nvm use
 
 # 3. Install npm dependencies
-npm install
+meteor npm ci
 ```
 
-> **Note:** The first `npm install` inside a Meteor project also pulls down Meteor's atmosphere packages listed in `.meteor/packages`. This can take a few minutes on a fresh machine.
+> **Note:** The first `meteor npm ci` inside a Meteor project also pulls down Meteor's atmosphere packages listed in `.meteor/packages`. This can take a few minutes on a fresh machine.
 
 ---
 
@@ -94,13 +94,13 @@ npm install
 
 ### Environment variables
 
-A `.env` file is included in the repo with defaults for local development:
+Create a `.env` file in the project root for local development:
 
 ```
-MONGO_URL=mongodb://localhost:27017/
+MONGO_URL=mongodb://localhost:27017/hhs
 ```
 
-This points to the Meteor-bundled local MongoDB. No changes are needed to get started. If you need to override any variable for your machine, edit `.env` directly — do not commit secrets.
+This points Meteor at the `hhs` database on the bundled local MongoDB. Do not commit secrets to this file.
 
 ### Start the dev server
 
@@ -123,32 +123,40 @@ Meteor's development server provides:
 ```
 hybrid-hiring/
 ├── client/
-│   └── main.tsx            # Client entry point — mounts the React app
+│   └── main.tsx                    # Client entry point — mounts the React app
 ├── server/
-│   └── main.ts             # Server entry point — startup logic & data seeding
+│   └── main.ts                     # Server entry point — startup logic & data seeding
 ├── imports/
 │   ├── api/
-│   │   ├── links.ts        # Links collection (Meteor scaffold example)
-│   │   └── users/
-│   │       ├── collection.ts   # Mongo collection + TypeScript type
-│   │       ├── methods.ts      # Meteor methods (server-side write logic)
-│   │       ├── publications.ts # Meteor publications (server-side read logic)
-│   │       └── index.ts        # Re-exports for cleaner imports
+│   │   ├── links.ts                # Links collection (Meteor scaffold example)
+│   │   └── demo-users/
+│   │       ├── collection.ts       # Mongo collection + TypeScript type (DemoUser)
+│   │       ├── methods.ts          # Meteor methods (server-side write logic)
+│   │       ├── publications.ts     # Meteor publications (server-side read logic)
+│   │       └── index.ts            # Re-exports for cleaner imports
 │   └── ui/
-│       ├── App.tsx             # Root React component
-│       ├── Hello.tsx           # Simple counter (Meteor scaffold example)
-│       ├── Info.tsx            # Links list using useSubscribe/useFind
-│       ├── UsersList.tsx       # Pub/sub reference example
-│       └── UsersManager.tsx    # Methods reference example
+│       ├── App.tsx                 # Root React component
+│       ├── router.tsx              # Client-side routes (react-router-dom)
+│       ├── layouts/
+│       │   ├── Layout.tsx          # Shell layout wrapping all pages
+│       │   ├── Header.tsx          # Top navigation bar
+│       │   └── MobileNavOverlay.tsx
+│       ├── pages/
+│       │   └── Home.tsx            # Landing page
+│       └── examples/
+│           ├── Hello.tsx           # Simple counter (Meteor scaffold example)
+│           ├── Info.tsx            # Links list using useSubscribe/useFind
+│           ├── DemoUsersList.tsx   # Pub/sub reference example
+│           └── DemoUsersManager.tsx # Methods reference example
 ├── tests/
-│   └── main.ts             # Test entry point (Mocha)
+│   └── main.ts                     # Test entry point (Mocha)
 ├── .meteor/
-│   ├── packages            # Atmosphere package list (like package.json for Meteor packages)
-│   ├── release             # Pinned Meteor version
-│   └── versions            # Locked package versions (commit this file)
-├── .env                    # Local environment variables
-├── .nvmrc                  # Pinned Node.js version
-└── tsconfig.json           # TypeScript configuration
+│   ├── packages                    # Atmosphere package list (like package.json for Meteor packages)
+│   ├── release                     # Pinned Meteor version
+│   └── versions                    # Locked package versions (commit this file)
+├── .env                            # Local environment variables (do not commit)
+├── .nvmrc                          # Pinned Node.js version
+└── tsconfig.json                   # TypeScript configuration
 ```
 
 ### Key conventions
@@ -168,7 +176,7 @@ Meteor only auto-loads files in `client/` and `server/`. Everything under `impor
 
 ### Publications & Subscriptions
 
-**Where to look:** `imports/api/users/publications.ts` (server) · `imports/ui/UsersList.tsx` (client)
+**Where to look:** `imports/api/demo-users/publications.ts` (server) · `imports/ui/examples/DemoUsersList.tsx` (client)
 
 Publications and subscriptions are Meteor's real-time data layer. They replace the traditional fetch-on-load model with a live, automatically-synced data stream.
 
@@ -181,28 +189,29 @@ Server publishes a cursor
       → useFind reads from that cache reactively → component re-renders
 ```
 
-**Server — define a publication** (`imports/api/users/publications.ts`):
+**Server — define a publication** (`imports/api/demo-users/publications.ts`):
 
 ```ts
 // No arguments — stream everything
-Meteor.publish('users.all', function () {
-  return UsersCollection.find({}, { sort: { createdAt: -1 } });
+Meteor.publish('demoUsers.all', function () {
+  return DemoUsersCollection.find({}, { sort: { createdAt: -1 } });
 });
 
 // With an argument — always validate with check()
-Meteor.publish('users.byName', function (nameFilter: string) {
+Meteor.publish('demoUsers.byName', function (nameFilter: string) {
   check(nameFilter, String);
-  return UsersCollection.find({ name: { $regex: nameFilter, $options: 'i' } });
+  return DemoUsersCollection.find({ name: { $regex: nameFilter, $options: 'i' } });
 });
 ```
 
-**Client — subscribe and read** (`imports/ui/UsersList.tsx`):
+**Client — subscribe and read** (`imports/ui/examples/DemoUsersList.tsx`):
 
 ```tsx
 import { useSubscribe, useFind } from 'meteor/react-meteor-data';
+import { DemoUsersCollection } from '../../api/demo-users/collection';
 
-const isLoading = useSubscribe('users.all');
-const users = useFind(() => UsersCollection.find({}, { sort: { createdAt: -1 } }));
+const isLoading = useSubscribe('demoUsers.all');
+const users = useFind(() => DemoUsersCollection.find({}, { sort: { createdAt: -1 } }));
 
 if (isLoading()) return <p>Loading…</p>;
 ```
@@ -218,7 +227,7 @@ if (isLoading()) return <p>Loading…</p>;
 
 ### Methods
 
-**Where to look:** `imports/api/users/methods.ts` (server) · `imports/ui/UsersManager.tsx` (client)
+**Where to look:** `imports/api/demo-users/methods.ts` (server) · `imports/ui/examples/DemoUsersManager.tsx` (client)
 
 Methods are named, server-side RPC functions. Use them for any write operation or business logic that should run with full server trust.
 
@@ -232,30 +241,30 @@ Client calls Meteor.callAsync('methodName', args)
         → useFind re-renders the component automatically
 ```
 
-**Server — define a method** (`imports/api/users/methods.ts`):
+**Server — define a method** (`imports/api/demo-users/methods.ts`):
 
 ```ts
 Meteor.methods({
-  'Users.create': async function (data: Omit<Users, '_id'>) {
+  'demoUsers.create': async function (data: Omit<DemoUser, '_id'>) {
     check(data, { name: String, createdAt: Date });
-    return UsersCollection.insertAsync({ ...data });
+    return DemoUsersCollection.insertAsync({ ...data });
   },
 
-  'Users.remove': async function (_id: string) {
+  'demoUsers.remove': async function (_id: string) {
     check(_id, String);
-    return UsersCollection.removeAsync(_id);
+    return DemoUsersCollection.removeAsync(_id);
   },
 });
 ```
 
-**Client — call a method** (`imports/ui/UsersManager.tsx`):
+**Client — call a method** (`imports/ui/examples/DemoUsersManager.tsx`):
 
 ```tsx
 import { Meteor } from 'meteor/meteor';
 
 // In Meteor 3.x, always use callAsync (never the old callback-based call).
 try {
-  await Meteor.callAsync('Users.create', { name, createdAt: new Date() });
+  await Meteor.callAsync('demoUsers.create', { name, createdAt: new Date() });
 } catch (err) {
   // Server throws Meteor.Error on validation or logic failures.
   if (err instanceof Meteor.Error) console.error(err.reason);
@@ -267,7 +276,7 @@ try {
 - In Meteor 3.x, always use `Meteor.callAsync` — it returns a Promise. The old `Meteor.call` with callbacks is deprecated.
 - Always `check()` every argument. Methods run with server trust; a bad argument can corrupt data.
 - Use `this.userId` inside a method to get the currently logged-in user's ID (requires a `function`, not an arrow function).
-- Methods are for **writes**. For **reads**, prefer subscriptions — they stay live. `Methods` for one-off server reads are fine for non-reactive admin use cases.
+- Methods are for **writes**. For **reads**, prefer subscriptions — they stay live. Methods for one-off server reads are fine for non-reactive admin use cases.
 
 ---
 
@@ -326,7 +335,7 @@ JIRA-ID/short-description
 ```
 HH-103/create-user-profile
 HH-214/fix-login-redirect
-HH-87/add-users-publication
+HH-87/add-demo-users-publication
 ```
 
 **Creating a branch:**
@@ -352,7 +361,7 @@ git checkout -b HH-103/create-user-profile
 ```
 [HH-103] Create user profile collection and methods
 [HH-214] Fix redirect loop on failed login
-[HH-87] Add users.all and users.byName publications
+[HH-87] Add demoUsers.all and demoUsers.byName publications
 ```
 
 **Common mistakes to avoid:**
