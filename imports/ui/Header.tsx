@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
 import { MobileNavOverlay } from './MobileNavOverlay';
@@ -8,8 +9,11 @@ export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const { isLoggedIn, isAdmin } = useTracker(() => {
-    const userId = Meteor.userId();
-    const user = Meteor.user() as (Meteor.User & { isAdmin?: boolean }) | null;
+    const userId = typeof Meteor.userId === 'function' ? Meteor.userId() : null;
+    const user =
+      typeof Meteor.user === 'function'
+        ? (Meteor.user() as (Meteor.User & { isAdmin?: boolean }) | null)
+        : null;
     return {
       isLoggedIn: !!userId,
       isAdmin: !!user?.isAdmin,
@@ -24,7 +28,14 @@ export const Header = () => {
 
   return (
     <header className="site-header">
-      <div className="site-header__logo">Hybrid Hiring</div>
+      <NavLink to="/" className="site-header__logo">
+        Hybrid Hiring
+      </NavLink>
+
+      <nav className="site-header__nav">
+        <NavLink to="/users/list">Users List</NavLink>
+        <NavLink to="/users/manage">Users Manager</NavLink>
+      </nav>
 
       <button
         className="site-header__hamburger"

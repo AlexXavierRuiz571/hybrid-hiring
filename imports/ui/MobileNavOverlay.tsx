@@ -47,7 +47,13 @@ export const MobileNavOverlay = ({
           <NavLink to="/" onClick={handleNavClick}>
             Home
           </NavLink>
-          <NavLink to="/jobs" onClick={handleNavClick}>
+          <NavLink to="/users/list" onClick={handleNavClick}>
+            Users List
+          </NavLink>
+          <NavLink to="/users/manage" onClick={handleNavClick}>
+            Users Manager
+          </NavLink>
+          {/* <NavLink to="/jobs" onClick={handleNavClick}>
             Jobs
           </NavLink>
           <NavLink to="/about" onClick={handleNavClick}>
@@ -55,7 +61,7 @@ export const MobileNavOverlay = ({
           </NavLink>
           <NavLink to="/contact" onClick={handleNavClick}>
             Contact
-          </NavLink>
+          </NavLink> */}
           {isAdmin && (
             <NavLink to="/admin" onClick={handleNavClick}>
               Admin
